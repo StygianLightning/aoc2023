@@ -73,6 +73,10 @@ impl Amounts {
         }
     }
 
+    pub fn power(self) -> u64 {
+        self.red as u64 * self.green as u64 * self.blue as u64
+    }
+
     pub fn check_validity(self, limit: Amounts) -> bool {
         self.red <= limit.red && self.green <= limit.green && self.blue <= limit.blue
     }
@@ -117,7 +121,7 @@ fn check_validity(game: &Game, limits: Amounts) -> bool {
 
 fn main() {
     let input = std::fs::read_to_string("input/two_training.txt").unwrap();
-    let input = std::fs::read_to_string("input/two.txt").unwrap();
+    //let input = std::fs::read_to_string("input/two.txt").unwrap();
 
     let limits = Amounts {
         red: 12,
@@ -128,11 +132,21 @@ fn main() {
     let games = input.split('\n').map(process_line).collect::<Vec<_>>();
 
     let mut sum = 0;
+    let mut power_sum = 0;
     for game in &games {
         if check_validity(game, limits) {
             sum += game.id();
         }
+
+        let min_amount = game
+            .rounds()
+            .iter()
+            .map(Round::amounts)
+            .reduce(Amounts::max_per_color)
+            .unwrap();
+        power_sum += min_amount.power();
     }
 
     println!("total sum of valid game ids: {sum}");
+    println!("total power sum of all games: {power_sum}");
 }
