@@ -125,12 +125,11 @@ fn main() {
         green: 13,
     };
 
+    let games = input.split('\n').map(process_line).collect::<Vec<_>>();
+
     let mut sum = 0;
-
-    for line in input.split('\n') {
-        let game = process_line(line);
-
-        if check_validity(&game, limits) {
+    for game in &games {
+        if check_validity(game, limits) {
             sum += game.id();
         }
     }
