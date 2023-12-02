@@ -121,7 +121,7 @@ fn check_validity(game: &Game, limits: Amounts) -> bool {
 
 fn main() {
     let input = std::fs::read_to_string("input/two_training.txt").unwrap();
-    //let input = std::fs::read_to_string("input/two.txt").unwrap();
+    let input = std::fs::read_to_string("input/two.txt").unwrap();
 
     let limits = Amounts {
         red: 12,
