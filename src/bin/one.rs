@@ -83,7 +83,7 @@ fn reverse_string_map(original_map: &HashMap<String, String>) -> HashMap<String,
 fn main() {
     let map = get_spelled_number_mapping();
     let rev_map = reverse_string_map(&map);
-    let input = std::fs::read_to_string("input/one.txt").unwrap();
+    let input = std::fs::read_to_string("input/1.txt").unwrap();
     //let input = std::fs::read_to_string("input/one_part_2_training.txt").unwrap();
     let total: u32 = input
         .split('\n')
