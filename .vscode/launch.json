@@ -7,39 +7,20 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'aoc'",
+            "name": "Debug executable 'three'",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=aoc",
+                    "--bin=three",
                     "--package=aoc"
                 ],
                 "filter": {
-                    "name": "aoc",
+                    "name": "three",
                     "kind": "bin"
                 }
             },
             "args": [],
             "cwd": "${workspaceFolder}"
         },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug unit tests in executable 'aoc'",
-            "cargo": {
-                "args": [
-                    "test",
-                    "--no-run",
-                    "--bin=aoc",
-                    "--package=aoc"
-                ],
-                "filter": {
-                    "name": "aoc",
-                    "kind": "bin"
-                }
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}"
-        }
     ]
 }
