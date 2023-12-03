@@ -140,10 +140,62 @@ fn main() {
     let validity_matrix = extract_validity_neighboring_matrix(&input);
 
     let valid_number_ranges = number_ranges
-        .iter()
-        .filter(|r| is_valid(**r, &validity_matrix))
+        .into_iter()
+        .filter(|r| is_valid(*r, &validity_matrix))
         .collect::<Vec<_>>();
 
     let valid_range_number_sum: u32 = valid_number_ranges.iter().map(|r| r.number).sum();
     println!("total part number sum: {valid_range_number_sum}");
+
+    let gears = find_gears(&valid_number_ranges, &input);
+    let gear_sum: u32 = gears.iter().map(|g| g.ratio).sum();
+
+    println!("total sum of gear ratios: {gear_sum}");
+}
+
+#[derive(Debug)]
+struct Gear {
+    pub ratio: u32,
+    pub line_idx: usize,
+    pub idx_in_line: usize,
+}
+
+const GEAR_SYMBOL: char = '*';
+
+fn find_gears(valid_number_ranges: &[NumberRange], input: &str) -> Vec<Gear> {
+    let mut gears = vec![];
+
+    for (line_idx, line) in input.lines().enumerate() {
+        for (idx_in_line, c) in line.char_indices() {
+            if c == GEAR_SYMBOL {
+                // find adjacent number ranges
+                let adjacent_ranges = valid_number_ranges
+                    .iter()
+                    .filter(|r| is_range_adjacent(**r, line_idx, idx_in_line))
+                    .collect::<Vec<_>>();
+                if adjacent_ranges.len() == 2 {
+                    gears.push(Gear {
+                        ratio: adjacent_ranges[0].number * adjacent_ranges[1].number,
+                        line_idx,
+                        idx_in_line,
+                    })
+                };
+            }
+        }
+    }
+
+    gears
+}
+
+fn is_range_adjacent(range: NumberRange, line_idx: usize, idx_in_line: usize) -> bool {
+    if (range.line as i32 - line_idx as i32).abs() > 1 {
+        return false;
+    }
+
+    for i in range.start..range.start + range.len {
+        if (i as i32 - idx_in_line as i32).abs() < 2 {
+            return true;
+        }
+    }
+    false
 }
