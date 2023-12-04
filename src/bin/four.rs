@@ -2,16 +2,22 @@ use std::collections::HashSet;
 
 #[derive(Debug)]
 struct Card {
+    id: u32,
     winning_numbers: HashSet<u32>,
     numbers: Vec<u32>,
 }
 
 impl Card {
-    fn new(winning_numbers: HashSet<u32>, numbers: Vec<u32>) -> Self {
+    fn new(id: u32, winning_numbers: HashSet<u32>, numbers: Vec<u32>) -> Self {
         Self {
+            id,
             winning_numbers,
             numbers,
         }
+    }
+
+    pub fn id(&self) -> u32 {
+        self.id
     }
 
     pub fn winning_numbers(&self) -> &HashSet<u32> {
@@ -32,7 +38,11 @@ impl Card {
 
     pub fn from_line(line: &str) -> Self {
         let mut numbers = line.split(':');
-        let numbers = numbers.nth(1).unwrap();
+        let id = numbers.next().unwrap();
+        let mut id = id.split_whitespace();
+        let id = id.nth(1).unwrap().parse::<u32>().unwrap();
+
+        let numbers = numbers.next().unwrap();
 
         let mut numbers = numbers.split('|');
         let winning_numbers = numbers.next().unwrap().trim();
@@ -48,6 +58,7 @@ impl Card {
             .collect();
 
         Self {
+            id,
             winning_numbers,
             numbers,
         }
@@ -70,4 +81,6 @@ fn main() {
 
     let total_winning_sum: u32 = cards.iter().map(Card::score).sum();
     println!("total winning sum: {total_winning_sum}");
+
+    let mut copies_per_card = vec![1; cards.len()];
 }
