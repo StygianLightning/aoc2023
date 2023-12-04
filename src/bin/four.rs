@@ -36,13 +36,9 @@ impl Card {
             .collect::<Vec<_>>()
     }
 
-    pub fn from_line(line: &str) -> Self {
+    pub fn from_line(line: &str, id: u32) -> Self {
         let mut numbers = line.split(':');
-        let id = numbers.next().unwrap();
-        let mut id = id.split_whitespace();
-        let id = id.nth(1).unwrap().parse::<u32>().unwrap();
-
-        let numbers = numbers.next().unwrap();
+        let numbers = numbers.nth(1).unwrap();
 
         let mut numbers = numbers.split('|');
         let winning_numbers = numbers.next().unwrap().trim();
@@ -77,7 +73,11 @@ impl Card {
 fn main() {
     let text = std::fs::read_to_string("input/4_training.txt").unwrap();
     let text = std::fs::read_to_string("input/4.txt").unwrap();
-    let cards = text.lines().map(Card::from_line).collect::<Vec<_>>();
+    let cards = text
+        .lines()
+        .enumerate()
+        .map(|(i, l)| Card::from_line(l, i as _))
+        .collect::<Vec<_>>();
 
     let total_winning_sum: u32 = cards.iter().map(Card::score).sum();
     println!("total winning sum: {total_winning_sum}");
