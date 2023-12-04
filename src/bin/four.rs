@@ -65,6 +65,7 @@ impl Card {
 
 fn main() {
     let text = std::fs::read_to_string("input/4_training.txt").unwrap();
+    let text = std::fs::read_to_string("input/4.txt").unwrap();
     let cards = text.lines().map(Card::from_line).collect::<Vec<_>>();
 
     let total_winning_sum: u32 = cards.iter().map(Card::score).sum();
