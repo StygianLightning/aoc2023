@@ -60,7 +60,7 @@ impl Card {
         }
     }
 
-    pub fn score(&self) -> u32 {
+    pub fn score_part_1(&self) -> u32 {
         let correct_numbers = self.correct_numbers();
         if correct_numbers.is_empty() {
             0
@@ -68,10 +68,15 @@ impl Card {
             1 << (correct_numbers.len() - 1)
         }
     }
+
+    pub fn update_winning_cards(&self, num_cards: &mut [u32]) {
+        for i in 0..self.correct_numbers().len() {
+            num_cards[i + 1 + self.id as usize] += num_cards[self.id as usize];
+        }
+    }
 }
 
 fn main() {
-    let text = std::fs::read_to_string("input/4_training.txt").unwrap();
     let text = std::fs::read_to_string("input/4.txt").unwrap();
     let cards = text
         .lines()
@@ -79,8 +84,14 @@ fn main() {
         .map(|(i, l)| Card::from_line(l, i as _))
         .collect::<Vec<_>>();
 
-    let total_winning_sum: u32 = cards.iter().map(Card::score).sum();
+    let total_winning_sum: u32 = cards.iter().map(Card::score_part_1).sum();
     println!("total winning sum: {total_winning_sum}");
 
     let mut copies_per_card = vec![1; cards.len()];
+    for card in &cards {
+        card.update_winning_cards(&mut copies_per_card);
+    }
+    println!("{copies_per_card:?}");
+    let total_num_cards = copies_per_card.iter().sum::<u32>();
+    println!("total #cards: {total_num_cards:?}");
 }
