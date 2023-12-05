@@ -17,6 +17,8 @@ impl RangeMap {
     }
 }
 
+const NUM_MAPS: u32 = 7;
+
 fn main() {
     let input = std::fs::read_to_string("input/5_training.txt").unwrap();
     let mut lines = input.lines();
@@ -30,18 +32,45 @@ fn main() {
 
     println!("{seeds:?}");
 
-    let maps = lines.skip(2);
-    let seed_to_soil_map = maps.clone().take_while(|l| l.starts_with(char::is_numeric));
+    let mut map_vec = vec![];
 
-    println!("seed to soil map");
-    for line in seed_to_soil_map {
-        println!("{line}");
-    }
-    let maps = maps.skip_while(|l| l.starts_with(char::is_numeric)).skip(2);
+    let mut skip = 2;
+    for i in 0..NUM_MAPS {
+        let maps = lines.clone().skip(skip);
+        let seed_to_soil_map = maps.clone().take_while(|l| l.starts_with(char::is_numeric));
+        println!("map {i}");
+        let mut range_map = RangeMap::default();
+        for line in seed_to_soil_map {
+            skip += 1;
+            println!("{line}");
+            let mut nums = line
+                .split_ascii_whitespace()
+                .take(3)
+                .map(|s| s.parse::<u32>().unwrap());
+            let dest = nums.next().unwrap();
+            let src = nums.next().unwrap();
+            let len = nums.next().unwrap();
+            range_map.insert(dest, src, len);
+        }
+        println!();
 
-    let soil_to_fertilizer_map = maps.clone().take_while(|l| l.starts_with(char::is_numeric));
-    println!("soil to fertilizer map");
-    for line in soil_to_fertilizer_map {
-        println!("{line}");
+        map_vec.push(range_map);
+        skip += 2; // skip new line and next map declaration
     }
+
+    let closest_converted = seeds
+        .iter()
+        .map(|seed| convert(*seed, &map_vec))
+        .min()
+        .unwrap();
+
+    println!("closest location: {closest_converted}");
+}
+
+fn convert(num: u32, maps: &Vec<RangeMap>) -> u32 {
+    let mut ret = num;
+    for map in maps {
+        ret = map.get(ret);
+    }
+    ret
 }
