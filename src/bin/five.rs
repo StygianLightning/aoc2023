@@ -2,18 +2,42 @@ use std::collections::HashMap;
 
 #[derive(Debug, Default)]
 struct RangeMap {
-    map: HashMap<u32, u32>,
+    range_mappings: Vec<RangeMapping>,
+}
+
+#[derive(Debug, Default)]
+struct RangeMapping {
+    source: u32,
+    dest: u32,
+    len: u32,
+}
+
+impl RangeMapping {
+    fn get(&self, val: u32) -> Option<u32> {
+        if val >= self.source && val < self.source + self.len {
+            Some(self.dest + (val - self.source))
+        } else {
+            None
+        }
+    }
 }
 
 impl RangeMap {
     pub fn insert(&mut self, dest: u32, source: u32, len: u32) {
-        for i in 0..len {
-            self.map.insert(source + i, dest + i);
-        }
+        self.range_mappings.push(RangeMapping { source, dest, len });
+    }
+
+    pub fn sort(&mut self) {
+        self.range_mappings.sort_by(|a, b| a.source.cmp(&b.source));
     }
 
     pub fn get(&self, val: u32) -> u32 {
-        self.map.get(&val).cloned().unwrap_or(val)
+        for mapping in &self.range_mappings {
+            if let Some(mapped_value) = mapping.get(val) {
+                return mapped_value;
+            }
+        }
+        val
     }
 }
 
