@@ -29,4 +29,19 @@ fn main() {
         .collect();
 
     println!("{seeds:?}");
+
+    let maps = lines.skip(2);
+    let seed_to_soil_map = maps.clone().take_while(|l| l.starts_with(char::is_numeric));
+
+    println!("seed to soil map");
+    for line in seed_to_soil_map {
+        println!("{line}");
+    }
+    let maps = maps.skip_while(|l| l.starts_with(char::is_numeric)).skip(2);
+
+    let soil_to_fertilizer_map = maps.clone().take_while(|l| l.starts_with(char::is_numeric));
+    println!("soil to fertilizer map");
+    for line in soil_to_fertilizer_map {
+        println!("{line}");
+    }
 }
