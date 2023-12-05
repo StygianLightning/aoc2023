@@ -1,4 +1,4 @@
-use std::{collections::HashMap, ops::Range};
+use std::ops::Range;
 
 #[derive(Debug, Default)]
 struct RangeMap {
@@ -7,13 +7,13 @@ struct RangeMap {
 
 #[derive(Debug, Default, Clone, Copy)]
 struct RangeMapping {
-    source: u32,
-    dest: u32,
-    len: u32,
+    source: u64,
+    dest: u64,
+    len: u64,
 }
 
 impl RangeMapping {
-    fn get(&self, val: u32) -> Option<u32> {
+    fn get(&self, val: u64) -> Option<u64> {
         if val >= self.source && val < self.source + self.len {
             Some(self.dest + (val - self.source))
         } else {
@@ -21,17 +21,17 @@ impl RangeMapping {
         }
     }
 
-    fn source_end(&self) -> u32 {
+    fn source_end(&self) -> u64 {
         self.source + self.len
     }
 
-    fn dest_end(&self) -> u32 {
+    fn dest_end(&self) -> u64 {
         self.source + self.len
     }
 }
 
 impl RangeMap {
-    pub fn insert(&mut self, dest: u32, source: u32, len: u32) {
+    pub fn insert(&mut self, dest: u64, source: u64, len: u64) {
         self.range_mappings.push(RangeMapping { source, dest, len });
     }
 
@@ -39,7 +39,7 @@ impl RangeMap {
         self.range_mappings.sort_by(|a, b| a.source.cmp(&b.source));
     }
 
-    pub fn get(&self, val: u32) -> u32 {
+    pub fn get(&self, val: u64) -> u64 {
         for mapping in &self.range_mappings {
             if let Some(mapped_value) = mapping.get(val) {
                 return mapped_value;
@@ -48,7 +48,7 @@ impl RangeMap {
         val
     }
 
-    fn get_mapping(&self, range: Range<u32>) -> Option<RangeMapping> {
+    fn get_mapping(&self, range: Range<u64>) -> Option<RangeMapping> {
         // could binary search here
         for mapping in &self.range_mappings {
             if let Some(_mapped_value) = mapping.get(range.start) {
@@ -59,18 +59,18 @@ impl RangeMap {
     }
 }
 
-const NUM_MAPS: u32 = 7;
+const NUM_MAPS: u64 = 7;
 
 fn main() {
     let input = std::fs::read_to_string("input/5_training.txt").unwrap();
-    // let input = std::fs::read_to_string("input/5.txt").unwrap();
+    let input = std::fs::read_to_string("input/5.txt").unwrap();
     let mut lines = input.lines();
     let seeds = lines.next().unwrap();
     let seeds = seeds.split(':').nth(1).unwrap();
 
-    let seeds: Vec<u32> = seeds
+    let seeds: Vec<u64> = seeds
         .split_whitespace()
-        .map(|s| s.parse::<u32>().unwrap())
+        .map(|s| s.parse::<u64>().unwrap())
         .collect();
 
     let mut seed_ranges = vec![];
@@ -97,7 +97,7 @@ fn main() {
             let mut nums = line
                 .split_ascii_whitespace()
                 .take(3)
-                .map(|s| s.parse::<u32>().unwrap());
+                .map(|s| s.parse::<u64>().unwrap());
             let dest = nums.next().unwrap();
             let src = nums.next().unwrap();
             let len = nums.next().unwrap();
@@ -129,7 +129,7 @@ fn main() {
     println!("min location for all seed ranges: {}", min_range.start);
 }
 
-fn convert(num: u32, maps: &Vec<RangeMap>) -> u32 {
+fn convert(num: u64, maps: &Vec<RangeMap>) -> u64 {
     let mut ret = num;
     for map in maps {
         ret = map.get(ret);
@@ -137,7 +137,7 @@ fn convert(num: u32, maps: &Vec<RangeMap>) -> u32 {
     ret
 }
 
-fn lookup_ranges(mut ranges_stack: Vec<Range<u32>>, maps: &RangeMap) -> Vec<Range<u32>> {
+fn lookup_ranges(mut ranges_stack: Vec<Range<u64>>, maps: &RangeMap) -> Vec<Range<u64>> {
     let mut output_stack = vec![];
 
     while let Some(range) = ranges_stack.pop() {
@@ -157,7 +157,9 @@ fn lookup_ranges(mut ranges_stack: Vec<Range<u32>>, maps: &RangeMap) -> Vec<Rang
             } else {
                 // fully mapped
                 let mapped_start = first_overlapping_mapping.get(range.start).unwrap();
-                output_stack.push(mapped_start..mapped_start + range.len() as u32);
+
+                let len = range.end - range.start;
+                output_stack.push(mapped_start..mapped_start + len);
             }
         } else {
             // completely free range
