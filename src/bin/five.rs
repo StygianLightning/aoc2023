@@ -1,11 +1,11 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, ops::Range};
 
 #[derive(Debug, Default)]
 struct RangeMap {
     range_mappings: Vec<RangeMapping>,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone, Copy)]
 struct RangeMapping {
     source: u32,
     dest: u32,
@@ -19,6 +19,14 @@ impl RangeMapping {
         } else {
             None
         }
+    }
+
+    fn source_end(&self) -> u32 {
+        self.source + self.len
+    }
+
+    fn dest_end(&self) -> u32 {
+        self.source + self.len
     }
 }
 
@@ -39,6 +47,16 @@ impl RangeMap {
         }
         val
     }
+
+    fn get_mapping(&self, range: Range<u32>) -> Option<RangeMapping> {
+        // could binary search here
+        for mapping in &self.range_mappings {
+            if let Some(_mapped_value) = mapping.get(range.start) {
+                return Some(*mapping);
+            }
+        }
+        None
+    }
 }
 
 const NUM_MAPS: u32 = 7;
@@ -55,7 +73,15 @@ fn main() {
         .map(|s| s.parse::<u32>().unwrap())
         .collect();
 
-    println!("{seeds:?}");
+    let mut seed_ranges = vec![];
+
+    for i in 0..seeds.len() / 2 {
+        let start = seeds[i * 2];
+        let len = seeds[i * 2 + 1];
+        seed_ranges.push(start..start + len);
+    }
+
+    println!("{seed_ranges:?}");
 
     let mut map_vec = vec![];
 
@@ -79,6 +105,8 @@ fn main() {
         }
         println!();
 
+        range_map.sort();
+
         map_vec.push(range_map);
         skip += 2; // skip new line and next map declaration
     }
@@ -89,7 +117,16 @@ fn main() {
         .min()
         .unwrap();
 
-    println!("closest location: {closest_converted}");
+    println!("closest location part 1: {closest_converted}");
+
+    let mut range_stack = seed_ranges;
+
+    for map in &map_vec {
+        range_stack = lookup_ranges(range_stack, map);
+    }
+
+    let min_range = range_stack.iter().min_by_key(|r| r.start).unwrap();
+    println!("min location for all seed ranges: {}", min_range.start);
 }
 
 fn convert(num: u32, maps: &Vec<RangeMap>) -> u32 {
@@ -98,4 +135,35 @@ fn convert(num: u32, maps: &Vec<RangeMap>) -> u32 {
         ret = map.get(ret);
     }
     ret
+}
+
+fn lookup_ranges(mut ranges_stack: Vec<Range<u32>>, maps: &RangeMap) -> Vec<Range<u32>> {
+    let mut output_stack = vec![];
+
+    while let Some(range) = ranges_stack.pop() {
+        if let Some(first_overlapping_mapping) = maps.get_mapping(range.clone()) {
+            let mapping_end_element = first_overlapping_mapping.source_end();
+
+            if mapping_end_element < range.end {
+                // put in the completed part
+                let mapped_start = first_overlapping_mapping.get(range.start).unwrap();
+                let len = mapping_end_element - range.start;
+                output_stack.push(mapped_start..mapped_start + len);
+
+                // mapping was not completed, take care of the rest in a later loop
+                let remainder_start = mapping_end_element;
+                let remainder_len = (range.end - range.start) - len;
+                ranges_stack.push(remainder_start..remainder_start + remainder_len);
+            } else {
+                // fully mapped
+                let mapped_start = first_overlapping_mapping.get(range.start).unwrap();
+                output_stack.push(mapped_start..mapped_start + range.len() as u32);
+            }
+        } else {
+            // completely free range
+            output_stack.push(range);
+        }
+    }
+
+    output_stack
 }
