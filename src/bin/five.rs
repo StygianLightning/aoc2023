@@ -45,6 +45,7 @@ const NUM_MAPS: u32 = 7;
 
 fn main() {
     let input = std::fs::read_to_string("input/5_training.txt").unwrap();
+    let input = std::fs::read_to_string("input/5.txt").unwrap();
     let mut lines = input.lines();
     let seeds = lines.next().unwrap();
     let seeds = seeds.split(':').nth(1).unwrap();
