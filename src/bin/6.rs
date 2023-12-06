@@ -1,5 +1,6 @@
 fn main() {
     let input = std::fs::read_to_string("input/6_training.txt").unwrap();
+    let input = std::fs::read_to_string("input/6.txt").unwrap();
     let mut lines = input.lines();
     let time_list = lines
         .next()
