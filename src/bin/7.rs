@@ -2,6 +2,9 @@ use std::{cmp::Ordering, collections::HashMap};
 
 fn main() {
     let input = std::fs::read_to_string("input/7.txt").unwrap();
+    let input = std::fs::read_to_string("input/7_training.txt").unwrap();
+    // false for pt 1, true for pt 2
+    let jacks_are_wildcards = true;
 
     let mut hands = input
         .lines()
@@ -12,35 +15,29 @@ fn main() {
                 .next()
                 .unwrap()
                 .chars()
-                .map(convert_to_card_rank)
+                .map(|c| convert_to_card_rank(c, jacks_are_wildcards))
                 .collect::<Vec<_>>();
             let bid = parts.next().unwrap().parse::<u32>().unwrap();
 
-            analyze_hand(hand, bid)
+            analyze_hand(hand, bid, jacks_are_wildcards)
         })
         .collect::<Vec<_>>();
 
     hands.sort_by(|a, b| {
-        hand_type_rank(a.hand_type)
-            .cmp(&hand_type_rank(b.hand_type))
-            .then_with(|| {
-                for i in 0..5 {
-                    let a = a.hand[i];
-                    let b = b.hand[i];
-                    let ord = a.cmp(&b);
-                    if ord != Ordering::Equal {
-                        return ord;
-                    }
+        a.hand_type.cmp(&b.hand_type).then_with(|| {
+            for i in 0..5 {
+                let a = a.hand[i];
+                let b = b.hand[i];
+                let ord = a.cmp(&b);
+                if ord != Ordering::Equal {
+                    return ord;
                 }
-                Ordering::Equal
-            })
+            }
+            Ordering::Equal
+        })
     });
     for hand in &hands {
-        println!(
-            "rank {}, hand: {:?}",
-            hand_type_rank(hand.hand_type),
-            hand.hand
-        )
+        println!("hand type {:?}, hand: {:?}", hand.hand_type, hand.hand)
     }
 
     let total: u32 = hands
@@ -59,46 +56,32 @@ struct Hand {
     bid: u32,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, PartialOrd, Ord)]
 enum HandType {
-    FiveOfAKind {
-        card_rank: u32,
-    },
-    FourOfAKind {
-        card_rank: u32,
-    },
-    FullHouse {
-        triple_card_rank: u32,
-        double_card_rank: u32,
-    },
-    ThreeOfAKind {
-        card_rank: u32,
-    },
-    TwoPair {
-        higher: u32,
-        lower: u32,
-    },
-    Pair {
-        card_rank: u32,
-    },
-    HighCard {
-        card_rank: u32,
-    },
+    HighCard,
+    Pair,
+    TwoPair,
+    ThreeOfAKind,
+    FullHouse,
+    FourOfAKind,
+    FiveOfAKind,
 }
 
-fn hand_type_rank(hand_type: HandType) -> u32 {
-    match hand_type {
-        HandType::FiveOfAKind { .. } => 7,
-        HandType::FourOfAKind { .. } => 6,
-        HandType::FullHouse { .. } => 5,
-        HandType::ThreeOfAKind { .. } => 4,
-        HandType::TwoPair { .. } => 3,
-        HandType::Pair { .. } => 2,
-        HandType::HighCard { .. } => 1,
+impl HandType {
+    fn rank(self) -> u32 {
+        match self {
+            HandType::FiveOfAKind {} => 6,
+            HandType::FourOfAKind {} => 5,
+            HandType::FullHouse {} => 4,
+            HandType::ThreeOfAKind {} => 3,
+            HandType::TwoPair {} => 2,
+            HandType::Pair {} => 1,
+            HandType::HighCard {} => 0,
+        }
     }
 }
 
-fn analyze_hand(hand: Vec<u32>, bid: u32) -> Hand {
+fn analyze_hand(hand: Vec<u32>, bid: u32, jacks_are_wildcards: bool) -> Hand {
     let mut frequency_map = HashMap::new();
 
     for num in &hand {
@@ -126,37 +109,41 @@ fn analyze_hand(hand: Vec<u32>, bid: u32) -> Hand {
             .then(a.card_rank.cmp(&b.card_rank).reverse())
     });
 
-    let hand_type = if entry_vec[0].frequency == 5 {
-        HandType::FiveOfAKind {
-            card_rank: entry_vec[0].card_rank,
-        }
+    let mut hand_type = if entry_vec[0].frequency == 5 {
+        HandType::FiveOfAKind
     } else if entry_vec[0].frequency == 4 {
-        HandType::FourOfAKind {
-            card_rank: entry_vec[0].card_rank,
-        }
+        HandType::FourOfAKind
     } else if entry_vec[0].frequency == 3 && entry_vec[1].frequency == 2 {
-        HandType::FullHouse {
-            triple_card_rank: entry_vec[0].card_rank,
-            double_card_rank: entry_vec[1].card_rank,
-        }
+        HandType::FullHouse
     } else if entry_vec[0].frequency == 3 {
-        HandType::ThreeOfAKind {
-            card_rank: entry_vec[0].card_rank,
-        }
+        HandType::ThreeOfAKind
     } else if entry_vec[0].frequency == 2 && entry_vec[1].frequency == 2 {
-        HandType::TwoPair {
-            higher: entry_vec[0].card_rank,
-            lower: entry_vec[1].card_rank,
-        }
+        HandType::TwoPair
     } else if entry_vec[0].frequency == 2 {
-        HandType::Pair {
-            card_rank: entry_vec[0].card_rank,
-        }
+        HandType::Pair
     } else {
-        HandType::HighCard {
-            card_rank: entry_vec[0].card_rank,
-        }
+        HandType::HighCard
     };
+
+    let jack = convert_to_card_rank('J', jacks_are_wildcards);
+    let num_jacks = hand.iter().filter(|c| **c == jack).count() as u32;
+    if jacks_are_wildcards && num_jacks > 0 {
+        hand_type = match hand_type {
+            HandType::FiveOfAKind | HandType::FourOfAKind | HandType::FullHouse => {
+                HandType::FiveOfAKind
+            }
+            HandType::TwoPair => {
+                if num_jacks == 1 {
+                    HandType::FullHouse
+                } else {
+                    HandType::FourOfAKind
+                }
+            }
+            HandType::Pair => HandType::ThreeOfAKind,
+            HandType::HighCard => HandType::Pair,
+            HandType::ThreeOfAKind => HandType::FourOfAKind,
+        };
+    }
 
     Hand {
         hand,
@@ -165,12 +152,18 @@ fn analyze_hand(hand: Vec<u32>, bid: u32) -> Hand {
     }
 }
 
-fn convert_to_card_rank(c: char) -> u32 {
+fn convert_to_card_rank(c: char, jacks_are_wildcards: bool) -> u32 {
     match c {
         'A' => 14,
         'K' => 13,
         'Q' => 12,
-        'J' => 11,
+        'J' => {
+            if jacks_are_wildcards {
+                1
+            } else {
+                11
+            }
+        }
         'T' => 10,
         _ => c.to_string().parse().unwrap(),
     }
