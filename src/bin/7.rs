@@ -2,7 +2,6 @@ use std::{cmp::Ordering, collections::HashMap};
 
 fn main() {
     let input = std::fs::read_to_string("input/7.txt").unwrap();
-    let input = std::fs::read_to_string("input/7_training.txt").unwrap();
     // false for pt 1, true for pt 2
     let jacks_are_wildcards = true;
 
