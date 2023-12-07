@@ -1,7 +1,7 @@
 use std::{cmp::Ordering, collections::HashMap};
 
 fn main() {
-    let input = std::fs::read_to_string("input/7_training.txt").unwrap();
+    let input = std::fs::read_to_string("input/7.txt").unwrap();
 
     let mut hands = input
         .lines()
@@ -35,7 +35,13 @@ fn main() {
                 Ordering::Equal
             })
     });
-    println!("sorted hands: {hands:#?}");
+    for hand in &hands {
+        println!(
+            "rank {}, hand: {:?}",
+            hand_type_rank(hand.hand_type),
+            hand.hand
+        )
+    }
 
     let total: u32 = hands
         .iter()
