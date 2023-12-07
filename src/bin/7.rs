@@ -36,6 +36,14 @@ fn main() {
             })
     });
     println!("sorted hands: {hands:#?}");
+
+    let total: u32 = hands
+        .iter()
+        .enumerate()
+        .map(|(i, hand)| (i + 1) as u32 * hand.bid)
+        .sum();
+
+    println!("total: {total}");
 }
 
 #[derive(Debug)]
