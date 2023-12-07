@@ -7,15 +7,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'three'",
+            "name": "Debug executable '7'",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=three",
-                    "--package=aoc"
+                    "--bin=7",
+                    "--package=aoc2023"
                 ],
                 "filter": {
-                    "name": "three",
+                    "name": "7",
                     "kind": "bin"
                 }
             },
