@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub enum Direction {
@@ -70,6 +70,9 @@ impl Network {
 
 fn main() {
     let input = std::fs::read_to_string("input/8.txt").unwrap();
+    let input = std::fs::read_to_string("input/8_training.txt").unwrap();
+
+    let multiple_start_and_target_nodes = false;
 
     let mut lines = input.lines();
     let directions: Vec<Direction> = lines
@@ -91,19 +94,42 @@ fn main() {
         network.insert_edges(node, left, right);
     }
 
-    let start = network.get_or_insert("AAA");
-    let target = network.get_or_insert("ZZZ");
+    let start_node_filter = if multiple_start_and_target_nodes {
+        "A"
+    } else {
+        "AAA"
+    };
+    let target_node_filter = if multiple_start_and_target_nodes {
+        "Z"
+    } else {
+        "ZZZ"
+    };
+
+    let mut current_nodes = network
+        .name_to_id
+        .iter()
+        .filter(|(k, _v)| k.ends_with(start_node_filter))
+        .map(|(_, v)| *v)
+        .collect::<Vec<_>>();
+
+    let target_nodes = network
+        .name_to_id
+        .iter()
+        .filter(|(k, _v)| k.ends_with(target_node_filter))
+        .map(|(_, v)| *v)
+        .collect::<HashSet<_>>();
 
     // follow instructions
-    let mut node = start;
     let mut distance = 0;
-    for (iteration, direction) in directions.iter().cycle().cloned().enumerate() {
-        if node == target {
-            distance = iteration;
-            break;
-        }
+    'outer: for (iteration, direction) in directions.iter().cycle().cloned().enumerate() {
+        for node in &mut current_nodes {
+            if target_nodes.contains(node) {
+                distance = iteration;
+                break 'outer;
+            }
 
-        node = network.node_neighbor(node, direction);
+            *node = network.node_neighbor(*node, direction);
+        }
     }
 
     println!("distance: {distance}");
