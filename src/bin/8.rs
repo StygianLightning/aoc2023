@@ -23,6 +23,7 @@ struct Node {
     index: usize,
     left: usize,
     right: usize,
+    name: String,
 }
 
 #[derive(Debug, Default)]
@@ -44,6 +45,7 @@ impl Network {
                 index: id,
                 left: 0,
                 right: 0,
+                name: name.to_owned(),
             })
         }
 
@@ -104,7 +106,7 @@ fn main() {
         "ZZZ"
     };
 
-    let mut current_nodes = network
+    let mut start_nodes = network
         .name_to_id
         .iter()
         .filter(|(k, _v)| k.ends_with(start_node_filter))
@@ -118,19 +120,76 @@ fn main() {
         .map(|(_, v)| *v)
         .collect::<HashSet<_>>();
 
-    // follow instructions
-    let mut distance = 0;
-    for (iteration, direction) in directions.iter().cycle().cloned().enumerate() {
-        if current_nodes.iter().all(|n| target_nodes.contains(n)) {
-            distance = iteration;
-            break;
+    let mut history_per_node = vec![];
+
+    // follow instructions for each node separately until a loop is reached
+    for start_node in &start_nodes {
+        let mut node_history = NodeHistory::default();
+
+        let mut current_node = *start_node;
+        let mut visited_relative_nodes = HashSet::new();
+
+        let mut last_seen_node = IterationNode {
+            node: current_node,
+            relative_iteration: 0,
+        };
+        visited_relative_nodes.insert(last_seen_node);
+
+        for (iteration, direction) in directions.iter().cycle().cloned().enumerate() {
+            current_node = network.node_neighbor(current_node, direction);
+            let iteration = (iteration + 1) % directions.len();
+
+            last_seen_node = IterationNode {
+                node: current_node,
+                relative_iteration: iteration,
+            };
+
+            if visited_relative_nodes.contains(&last_seen_node) {
+                break;
+            }
+            visited_relative_nodes.insert(last_seen_node);
+            node_history.iteration_nodes.push(last_seen_node);
         }
 
-        for node in &mut current_nodes {
-            let new_node = network.node_neighbor(*node, direction);
-            *node = new_node;
-        }
+        let loop_start = node_history
+            .iteration_nodes
+            .iter()
+            .position(|n| *n == last_seen_node)
+            .unwrap();
+
+        let loop_info = LoopInfo {
+            start: loop_start,
+            length: node_history.iteration_nodes.len() - loop_start,
+        };
+
+        node_history.loop_info = loop_info;
+
+        history_per_node.push(node_history);
     }
 
-    println!("distance: {distance}");
+    for node_history in &history_per_node {
+        let node_name = &network.nodes[node_history.iteration_nodes[0].node].name;
+        println!(
+            "loop info for node {node_name}: {:#?}",
+            node_history.loop_info
+        );
+    }
+}
+
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
+struct IterationNode {
+    node: usize,
+    relative_iteration: usize,
+}
+
+#[derive(Debug, Default)]
+struct NodeHistory {
+    iteration_nodes: Vec<IterationNode>,
+    loop_info: LoopInfo,
+}
+
+#[derive(Debug, Clone, Copy, Default)]
+struct LoopInfo {
+    start: usize,
+    length: usize,
 }
