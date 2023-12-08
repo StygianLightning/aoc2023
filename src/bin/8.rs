@@ -30,9 +30,6 @@ struct Network {
     nodes: Vec<Node>,
 
     name_to_id: HashMap<String, usize>,
-
-    start_index: usize,
-    target_index: usize,
 }
 
 impl Network {
@@ -69,18 +66,10 @@ impl Network {
             Direction::Right => node.right,
         }
     }
-
-    fn set_start(&mut self, start: usize) {
-        self.start_index = start;
-    }
-
-    fn set_target(&mut self, target: usize) {
-        self.target_index = target;
-    }
 }
 
 fn main() {
-    let input = std::fs::read_to_string("input/8_training2.txt").unwrap();
+    let input = std::fs::read_to_string("input/8.txt").unwrap();
 
     let mut lines = input.lines();
     let directions: Vec<Direction> = lines
@@ -103,7 +92,19 @@ fn main() {
     }
 
     let start = network.get_or_insert("AAA");
-    network.set_start(start);
     let target = network.get_or_insert("ZZZ");
-    network.set_target(target);
+
+    // follow instructions
+    let mut node = start;
+    let mut distance = 0;
+    for (iteration, direction) in directions.iter().cycle().cloned().enumerate() {
+        if node == target {
+            distance = iteration;
+            break;
+        }
+
+        node = network.node_neighbor(node, direction);
+    }
+
+    println!("distance: {distance}");
 }
