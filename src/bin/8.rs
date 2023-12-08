@@ -70,9 +70,8 @@ impl Network {
 
 fn main() {
     let input = std::fs::read_to_string("input/8.txt").unwrap();
-    let input = std::fs::read_to_string("input/8_training.txt").unwrap();
 
-    let multiple_start_and_target_nodes = false;
+    let multiple_start_and_target_nodes = true;
 
     let mut lines = input.lines();
     let directions: Vec<Direction> = lines
@@ -121,14 +120,15 @@ fn main() {
 
     // follow instructions
     let mut distance = 0;
-    'outer: for (iteration, direction) in directions.iter().cycle().cloned().enumerate() {
-        for node in &mut current_nodes {
-            if target_nodes.contains(node) {
-                distance = iteration;
-                break 'outer;
-            }
+    for (iteration, direction) in directions.iter().cycle().cloned().enumerate() {
+        if current_nodes.iter().all(|n| target_nodes.contains(n)) {
+            distance = iteration;
+            break;
+        }
 
-            *node = network.node_neighbor(*node, direction);
+        for node in &mut current_nodes {
+            let new_node = network.node_neighbor(*node, direction);
+            *node = new_node;
         }
     }
 
