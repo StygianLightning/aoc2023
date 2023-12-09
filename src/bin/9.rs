@@ -1,12 +1,18 @@
 fn main() {
-    let input = std::fs::read_to_string("input/9_training.txt").unwrap();
+    let input = std::fs::read_to_string("input/9.txt").unwrap();
+
+    let part2 = true;
 
     let mut pyramids = vec![];
     for sequence in input.lines() {
         let nums = sequence
             .split_whitespace()
-            .filter_map(|s| s.parse::<i32>().ok())
-            .collect();
+            .filter_map(|s| s.parse::<i32>().ok());
+        let nums = if part2 {
+            nums.rev().collect()
+        } else {
+            nums.collect()
+        };
         let mut pyramid = Pyramid::new(nums);
         pyramid.extend();
         pyramids.push(pyramid);
