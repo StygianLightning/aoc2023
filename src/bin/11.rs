@@ -1,50 +1,53 @@
-fn empty_row_offsets(grid: &[Vec<char>]) -> Vec<usize> {
+const PART_1_OFFSET: usize = 1;
+const PART_2_OFFSET: usize = 999999;
+
+fn empty_row_offsets(grid: &[Vec<char>], offset: usize) -> Vec<usize> {
     let mut ret = vec![];
 
-    let mut offset = 0;
+    let mut offset_so_far = 0;
 
     for row in grid.iter() {
         if row.iter().all(|c| *c == '.') {
-            offset += 1;
+            offset_so_far += offset;
         }
-        ret.push(offset);
+        ret.push(offset_so_far);
     }
 
     ret
 }
 
-fn empty_col_offsets(grid: &[Vec<char>]) -> Vec<usize> {
+fn empty_col_offsets(grid: &[Vec<char>], offset: usize) -> Vec<usize> {
     let mut ret = vec![];
 
-    let mut offset = 0;
+    let mut offset_so_far = 0;
 
     for idx in 0..grid[0].len() {
         if (0..grid.len()).all(|row_idx| grid[row_idx][idx] == '.') {
-            offset += 1;
+            offset_so_far += offset;
         }
-        ret.push(offset);
+        ret.push(offset_so_far);
     }
 
     ret
 }
 
 fn main() {
-    let input = std::fs::read_to_string("input/11_training.txt").unwrap();
+    let input = std::fs::read_to_string("input/11.txt").unwrap();
+
+
+    let part2 = true;
 
     let grid = input
         .lines()
         .map(|line| line.chars().collect::<Vec<_>>())
         .collect::<Vec<_>>();
 
-    let empty_rows = empty_row_offsets(&grid);
-    let empty_cols = empty_col_offsets(&grid);
+    let offset = if part2 { PART_2_OFFSET } else { PART_1_OFFSET };
 
-    println!("empty row offsets: {empty_rows:?}");
-    println!("empty col offsets: {empty_cols:?}");
+    let empty_rows = empty_row_offsets(&grid, offset);
+    let empty_cols = empty_col_offsets(&grid, offset);
 
     let galaxy_locations = find_galaxy_locations(&grid);
-
-    println!("galaxy locations: {galaxy_locations:?}");
 
     let total = all_pairs_shortest_path_sum(galaxy_locations, empty_rows, empty_cols);
 
