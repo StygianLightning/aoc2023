@@ -46,38 +46,32 @@ impl Pattern {
         self.columns.len()
     }
 
-    pub fn find_mirror(&self) -> Option<Mirror> {
-        let mut map = HashMap::new();
-
+    pub fn find_mirror(&self, part2: bool) -> Option<Mirror> {
         for (strings, mirror, num_strings) in [
-            (self.rows.iter(), MirrorType::Horizontal, self.rows.len()),
-            (
-                self.columns.iter(),
-                MirrorType::Vertical,
-                self.columns.len(),
-            ),
+            (&self.rows, MirrorType::Horizontal, self.rows.len()),
+            (&self.columns, MirrorType::Vertical, self.columns.len()),
         ] {
-            for (i, line) in strings.enumerate() {
-                map.entry(line.to_owned()).or_insert(vec![]).push(i);
-            }
-
-            if let Some(mirror) = find_mirror_from_map(&map, mirror, num_strings) {
+            if let Some(mirror) = find_mirror_for_strings(mirror, num_strings, part2, strings) {
                 return Some(mirror);
             }
-            map.clear();
         }
 
         None
     }
 }
 
-fn find_mirror_from_map(
-    map: &HashMap<String, Vec<usize>>,
+fn find_mirror_for_strings(
     mirror_type: MirrorType,
     num_strings: usize,
+    part2: bool,
+    strings: &[String],
 ) -> Option<Mirror> {
-    let mut inverse_map = HashMap::new();
+    let mut map = HashMap::new();
+    for (i, line) in strings.iter().enumerate() {
+        map.entry(line.to_owned()).or_insert(vec![]).push(i);
+    }
 
+    let mut inverse_map = HashMap::new();
     for list in map.values() {
         for i in list {
             inverse_map.insert(*i, list[0]);
@@ -92,17 +86,37 @@ fn find_mirror_from_map(
         let mut left = i as i32;
 
         let mut right = i + 1;
-        let mut mirrored = true;
+        let mut mismatches = vec![];
 
         while left >= 0 && right < num_strings {
             if inverse_map[&(left as usize)] != inverse_map[&right] {
                 // not mirrored
-                mirrored = false;
-                break;
+                mismatches.push((left, right));
+
+                if !part2 || mismatches.len() > 1 {
+                    // part 1 allows no mismatches, part2 only one
+                    break;
+                }
             }
             left -= 1;
             right += 1;
         }
+
+        let mirrored = if part2 {
+            match &mismatches[..] {
+                // for part 2, mirroring requires exactly one smidge:
+                // exactly one position must differ for one pair of strings.
+                &[(left, right)] => {
+                    let a = &strings[left as usize];
+                    let b = &strings[right];
+                    let num_diff = a.chars().zip(b.chars()).filter(|(a, b)| a != b).count();
+                    num_diff == 1
+                }
+                _ => false,
+            }
+        } else {
+            mismatches.is_empty()
+        };
 
         if mirrored {
             mirror_pos = Some(i);
@@ -118,6 +132,8 @@ fn find_mirror_from_map(
 fn main() {
     let input = std::fs::read_to_string("input/13_training.txt").unwrap();
     let input = std::fs::read_to_string("input/13.txt").unwrap();
+
+    let part2 = true;
 
     let mut patterns = vec![];
     patterns.push(Pattern::default());
@@ -136,7 +152,7 @@ fn main() {
     let mut total = 0;
 
     for pattern in &patterns {
-        let mirror = pattern.find_mirror().unwrap();
+        let mirror = pattern.find_mirror(part2).unwrap();
         println!("found mirror: {mirror:?}");
 
         total += match mirror.mirror_type {
