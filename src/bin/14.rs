@@ -125,11 +125,33 @@ fn main() {
     }
 
     if part2 {
+        for i in 0..3 {
+            shift_grid_in_direction(&mut grid, Direction::North);
+            shift_grid_in_direction(&mut grid, Direction::West);
+            shift_grid_in_direction(&mut grid, Direction::South);
+            shift_grid_in_direction(&mut grid, Direction::East);
+            println!("\nafter {i} iterations:");
+            print_grid(&grid);
+        }
     } else {
         shift_grid_in_direction(&mut grid, Direction::North);
+        println!("\nshifted:");
+        print_grid(&grid);
     }
 
-    println!("\nshifted:");
+    let mut total = 0;
+    for y in 0..grid.len_y() as i32 {
+        for x in 0..grid.len_x() as i32 {
+            if grid[Index2d { x, y }] == Tile::Loose {
+                total += grid.len_y() - (y as usize);
+            }
+        }
+    }
+
+    println!("total load: {total}");
+}
+
+fn print_grid(grid: &Grid2d<Tile>) {
     for y in 0..grid.len_y() {
         let mut s = String::new();
         for x in 0..grid.len_x() {
@@ -143,15 +165,4 @@ fn main() {
 
         println!("{s}");
     }
-
-    let mut total = 0;
-    for y in 0..grid.len_y() as i32 {
-        for x in 0..grid.len_x() as i32 {
-            if grid[Index2d { x, y }] == Tile::Loose {
-                total += grid.len_y() - (y as usize);
-            }
-        }
-    }
-
-    println!("total load: {total}");
 }
