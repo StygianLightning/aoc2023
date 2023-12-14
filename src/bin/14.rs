@@ -17,6 +17,40 @@ impl Tile {
             _ => panic!("unknown tile character `{c}`"),
         }
     }
+
+    fn to_char(self) -> char {
+        match self {
+            Tile::Space => '.',
+            Tile::Loose => 'O',
+            Tile::Fixed => '#',
+        }
+    }
+}
+
+fn shift_grid_north(grid: &mut Grid2d<Tile>) {
+    for x in 0..grid.len_x() as i32 {
+        let mut first_free_from_top = 0;
+        for y in 0..grid.len_y() as i32 {
+            //
+            let idx = Index2d { x, y };
+            match grid[idx] {
+                Tile::Space => continue,
+                Tile::Loose => {
+                    if first_free_from_top < y {
+                        grid[Index2d {
+                            x,
+                            y: first_free_from_top,
+                        }] = Tile::Loose;
+                        grid[idx] = Tile::Space;
+                    }
+                    first_free_from_top += 1;
+                }
+                Tile::Fixed => {
+                    first_free_from_top = y + 1;
+                }
+            }
+        }
+    }
 }
 
 fn main() {
@@ -41,41 +75,30 @@ fn main() {
         }
     }
 
+    shift_grid_north(&mut grid);
+
+    println!("\nshifted:");
     for y in 0..grid.len_y() {
+        let mut s = String::new();
         for x in 0..grid.len_x() {
-            print!(
-                "{:?} ",
-                grid[Index2d {
-                    x: x as i32,
-                    y: y as i32
-                }]
-            );
+            s += &grid[Index2d {
+                x: x as i32,
+                y: y as i32,
+            }]
+            .to_char()
+            .to_string();
         }
 
-        println!();
+        println!("{s}");
     }
 
     let mut total = 0;
-    for x in 0..grid.len_x() as i32 {
-        let mut load_next = grid.len_y() as i32; // the examples are 1-indexed
-        let mut load_this_column = 0;
-        for y in 0..grid.len_y() as i32 {
-            //
-            let idx = Index2d { x, y };
-            match grid[idx] {
-                Tile::Space => continue,
-                Tile::Loose => {
-                    load_this_column += load_next;
-                    load_next -= 1;
-                }
-                Tile::Fixed => {
-                    load_next = grid.len_y() as i32 - y - 1;
-                }
+    for y in 0..grid.len_y() as i32 {
+        for x in 0..grid.len_x() as i32 {
+            if grid[Index2d { x, y }] == Tile::Loose {
+                total += grid.len_y() - (y as usize);
             }
         }
-
-        println!("load column {x}: {load_this_column}");
-        total += load_this_column;
     }
 
     println!("total load: {total}");
