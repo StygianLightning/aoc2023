@@ -7,15 +7,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable '14'",
+            "name": "Debug executable '12'",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=14",
+                    "--bin=12",
                     "--package=aoc2023"
                 ],
                 "filter": {
-                    "name": "14",
+                    "name": "12",
                     "kind": "bin"
                 }
             },
