@@ -1,6 +1,8 @@
+use std::collections::{hash_map::Entry, HashMap};
+
 use aoc2023::util::{Grid2d, Index2d};
 
-#[derive(Debug, Default, Copy, Clone, Eq, PartialEq)]
+#[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 enum Tile {
     #[default]
     Space,
@@ -72,12 +74,9 @@ fn shift_grid_in_direction(grid: &mut Grid2d<Tile>, direction: Direction) {
         }
         Direction::West => {
             let left_row = (0..grid.len_y())
-                .map(|i| Index2d {
-                    x: grid.len_x() as i32 - 1,
-                    y: i as i32,
-                })
+                .map(|i| Index2d { x: 0, y: i as i32 })
                 .collect::<Vec<_>>();
-            (left_row, Index2d { x: -1, y: 0 })
+            (left_row, Index2d { x: 1, y: 0 })
         }
         Direction::South => {
             let bottom_row = (0..grid.len_x())
@@ -89,15 +88,20 @@ fn shift_grid_in_direction(grid: &mut Grid2d<Tile>, direction: Direction) {
             (bottom_row, Index2d { x: 0, y: -1 })
         }
         Direction::East => {
-            let left_row = (0..grid.len_y())
-                .map(|i| Index2d { x: 0, y: i as i32 })
+            let right_row = (0..grid.len_y())
+                .map(|i| Index2d {
+                    x: grid.len_x() as i32 - 1,
+                    y: i as i32,
+                })
                 .collect::<Vec<_>>();
-            (left_row, Index2d { x: 1, y: 0 })
+            (right_row, Index2d { x: -1, y: 0 })
         }
     };
 
     shift_grid(grid, &start_tiles, direction);
 }
+
+const NUM_CYCLES: usize = 1000000000;
 
 fn main() {
     let input_file = if let Some(file) = std::env::args().nth(1) {
@@ -109,7 +113,13 @@ fn main() {
     let input = std::fs::read_to_string(input_file).unwrap();
     println!("{input}");
 
-    let part2 = false;
+    let part2 = if let Some(flag) = std::env::args().nth(2) {
+        flag.parse().unwrap()
+    } else {
+        false
+    };
+
+    println!("part2 flag: {part2}");
 
     let num_lines = input.lines().count();
     let line_length = input.lines().next().unwrap().len();
@@ -125,13 +135,49 @@ fn main() {
     }
 
     if part2 {
-        for i in 0..3 {
+        let mut dejavu = HashMap::new();
+        dejavu.insert(grid.clone(), 0);
+        let mut num_iterations = 0;
+        let mut loop_start = None;
+        for i in 0..NUM_CYCLES {
             shift_grid_in_direction(&mut grid, Direction::North);
             shift_grid_in_direction(&mut grid, Direction::West);
             shift_grid_in_direction(&mut grid, Direction::South);
             shift_grid_in_direction(&mut grid, Direction::East);
-            println!("\nafter {i} iterations:");
-            print_grid(&grid);
+            // print_grid(&grid);
+
+            match dejavu.entry(grid.clone()) {
+                Entry::Occupied(e) => {
+                    println!(
+                        "seen before in iteration {}; current iteration: {i}",
+                        e.get()
+                    );
+
+                    num_iterations = i;
+                    loop_start = Some(*e.get());
+                    break;
+                }
+                Entry::Vacant(e) => {
+                    e.insert(i);
+                }
+            }
+        }
+
+        if let Some(loop_start) = loop_start {
+            let loop_len = num_iterations - loop_start;
+            let remaining_iterations = NUM_CYCLES - loop_start - 1;
+            let end_index = loop_start + remaining_iterations % loop_len;
+            dbg!(loop_start);
+            dbg!(num_iterations);
+            dbg!(remaining_iterations);
+            dbg!(loop_len);
+            dbg!(end_index);
+            for (k, v) in dejavu {
+                if v == end_index {
+                    grid = k;
+                    break;
+                }
+            }
         }
     } else {
         shift_grid_in_direction(&mut grid, Direction::North);

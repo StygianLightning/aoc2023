@@ -1,6 +1,6 @@
 use std::ops::{Add, AddAssign, Index, IndexMut};
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub struct Index2d {
     pub x: i32,
     pub y: i32,
@@ -24,7 +24,7 @@ impl AddAssign for Index2d {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Grid2d<T> {
     len_x: usize,
     len_y: usize,
