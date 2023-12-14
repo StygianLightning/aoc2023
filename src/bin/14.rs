@@ -27,30 +27,76 @@ impl Tile {
     }
 }
 
-fn shift_grid_north(grid: &mut Grid2d<Tile>) {
-    for x in 0..grid.len_x() as i32 {
-        let mut first_free_from_top = 0;
-        for y in 0..grid.len_y() as i32 {
+fn shift_grid(grid: &mut Grid2d<Tile>, start_tiles: &[Index2d], direction: Index2d) {
+    for tile in start_tiles {
+        let mut first_free_index = *tile;
+        let mut current = *tile;
+
+        while grid.is_valid(current) {
             //
-            let idx = Index2d { x, y };
-            match grid[idx] {
-                Tile::Space => continue,
+            match grid[current] {
+                Tile::Space => {}
                 Tile::Loose => {
-                    if first_free_from_top < y {
-                        grid[Index2d {
-                            x,
-                            y: first_free_from_top,
-                        }] = Tile::Loose;
-                        grid[idx] = Tile::Space;
+                    if first_free_index != current {
+                        grid[first_free_index] = Tile::Loose;
+                        grid[current] = Tile::Space;
                     }
-                    first_free_from_top += 1;
+                    first_free_index += direction;
                 }
                 Tile::Fixed => {
-                    first_free_from_top = y + 1;
+                    first_free_index = current + direction;
                 }
             }
+
+            current += direction;
         }
     }
+}
+
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+
+enum Direction {
+    North,
+    West,
+    South,
+    East,
+}
+
+fn shift_grid_in_direction(grid: &mut Grid2d<Tile>, direction: Direction) {
+    let (start_tiles, direction) = match direction {
+        Direction::North => {
+            let top_row = (0..grid.len_x())
+                .map(|i| Index2d { x: i as i32, y: 0 })
+                .collect::<Vec<_>>();
+            (top_row, Index2d { x: 0, y: 1 })
+        }
+        Direction::West => {
+            let left_row = (0..grid.len_y())
+                .map(|i| Index2d {
+                    x: grid.len_x() as i32 - 1,
+                    y: i as i32,
+                })
+                .collect::<Vec<_>>();
+            (left_row, Index2d { x: -1, y: 0 })
+        }
+        Direction::South => {
+            let bottom_row = (0..grid.len_x())
+                .map(|i| Index2d {
+                    x: i as i32,
+                    y: grid.len_y() as i32 - 1,
+                })
+                .collect::<Vec<_>>();
+            (bottom_row, Index2d { x: 0, y: -1 })
+        }
+        Direction::East => {
+            let left_row = (0..grid.len_y())
+                .map(|i| Index2d { x: 0, y: i as i32 })
+                .collect::<Vec<_>>();
+            (left_row, Index2d { x: 1, y: 0 })
+        }
+    };
+
+    shift_grid(grid, &start_tiles, direction);
 }
 
 fn main() {
@@ -80,7 +126,7 @@ fn main() {
 
     if part2 {
     } else {
-        shift_grid_north(&mut grid);
+        shift_grid_in_direction(&mut grid, Direction::North);
     }
 
     println!("\nshifted:");

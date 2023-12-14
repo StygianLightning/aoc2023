@@ -1,9 +1,27 @@
-use std::ops::{Index, IndexMut};
+use std::ops::{Add, AddAssign, Index, IndexMut};
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct Index2d {
     pub x: i32,
     pub y: i32,
+}
+
+impl Add for Index2d {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
+    }
+}
+
+impl AddAssign for Index2d {
+    fn add_assign(&mut self, rhs: Self) {
+        self.x += rhs.x;
+        self.y += rhs.y;
+    }
 }
 
 #[derive(Debug)]
