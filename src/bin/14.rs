@@ -62,6 +62,9 @@ fn main() {
     println!("using input file `{input_file}`");
     let input = std::fs::read_to_string(input_file).unwrap();
     println!("{input}");
+
+    let part2 = false;
+
     let num_lines = input.lines().count();
     let line_length = input.lines().next().unwrap().len();
 
@@ -75,7 +78,10 @@ fn main() {
         }
     }
 
-    shift_grid_north(&mut grid);
+    if part2 {
+    } else {
+        shift_grid_north(&mut grid);
+    }
 
     println!("\nshifted:");
     for y in 0..grid.len_y() {
