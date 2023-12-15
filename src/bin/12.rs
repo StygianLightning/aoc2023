@@ -145,14 +145,35 @@ impl Record {
 
         total
     }
+
+    fn expand(&mut self) {
+        self.damaged_groups = self
+            .damaged_groups
+            .iter()
+            .cloned()
+            .cycle()
+            .take(self.damaged_groups.len() * 5)
+            .collect();
+        self.status_data = self
+            .status_data
+            .iter()
+            .cloned()
+            .chain(std::iter::once(SpringStatus::Unknown))
+            .cycle()
+            .take(self.status_data.len() * 5 + 4)
+            .collect();
+    }
 }
 
 fn main() {
-    let input = std::fs::read_to_string("input/12_training.txt").unwrap();
     let input = std::fs::read_to_string("input/12.txt").unwrap();
+    let part2 = true;
     let mut total = 0;
     for line in input.lines() {
         let mut record = Record::from_line(line);
+        if part2 {
+            record.expand();
+        }
         let ways_to_match = record.ways_to_match();
         total += ways_to_match;
     }
