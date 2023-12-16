@@ -70,6 +70,50 @@ fn main() {
     println!("reconstructed:");
     print_grid(&grid);
 
+    // follow the lights
+
+    let num_energized_tiles = if part2 {
+        (0..grid.len_x())
+            .flat_map(|i| {
+                [
+                    (Index2d { x: i as _, y: 0 }, Direction::Down),
+                    (
+                        Index2d {
+                            x: i as _,
+                            y: grid.len_y() as i32 - 1,
+                        },
+                        Direction::Up,
+                    ),
+                ]
+            })
+            .chain((0..grid.len_y()).flat_map(|i| {
+                [
+                    (Index2d { x: 0, y: i as _ }, Direction::Right),
+                    (
+                        Index2d {
+                            x: grid.len_x() as i32 - 1,
+                            y: i as _,
+                        },
+                        Direction::Left,
+                    ),
+                ]
+            }))
+            .map(|(pos, direction)| num_energized_tiles(&grid, pos, direction))
+            .max()
+            .unwrap()
+    } else {
+        num_energized_tiles(&grid, Index2d { x: 0, y: 0 }, Direction::Right)
+    };
+    println!("number of energized tiles: {num_energized_tiles}");
+}
+
+fn num_energized_tiles(
+    grid: &Grid2d<Tile>,
+    start_position: Index2d,
+    direction: Direction,
+) -> usize {
+    // let mut ray_start_positions = vec![(Index2d { x: 0, y: 0 }, Direction::Right)];
+    let mut ray_start_positions = vec![(start_position, direction)];
     let mut light_map: Grid2d<HashSet<Direction>> = Grid2d::new(grid.len_x(), grid.len_y());
 
     for y in 0..grid.len_y() {
@@ -80,9 +124,6 @@ fn main() {
             }] = HashSet::new();
         }
     }
-
-    // follow the lights
-    let mut ray_start_positions = vec![(Index2d { x: 0, y: 0 }, Direction::Right)];
 
     while let Some((mut position, mut direction)) = ray_start_positions.pop() {
         while grid.is_valid(position) {
@@ -148,7 +189,7 @@ fn main() {
         }
     }
 
-    println!("number of energized tiles: {num_energized_tiles}");
+    num_energized_tiles
 }
 
 fn print_grid(grid: &Grid2d<Tile>) {
