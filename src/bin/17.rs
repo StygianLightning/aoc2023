@@ -103,8 +103,24 @@ fn main() {
             }
 
             let mut cost = node.cost;
-            for i in 0..3 {
-                let neighbor = node.position + direction.to_index() * (i + 1);
+
+            let min = if part2 { 4 } else { 1 };
+
+            let min_position = node.position + direction.to_index() * min;
+            if !grid.is_valid(min_position) {
+                continue;
+            }
+
+            for i in 1..min {
+                // the cost for the offset times min will be added in the first iteration of the loop below.
+                // this cost addition is only for the cost before another decision point is reached.
+                cost += grid[node.position + direction.to_index() * i];
+            }
+
+            let max = if part2 { 10 } else { 3 };
+
+            for i in min..=max {
+                let neighbor = node.position + direction.to_index() * i;
                 if !grid.is_valid(neighbor) {
                     break;
                 }
