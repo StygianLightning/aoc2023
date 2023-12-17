@@ -1,4 +1,4 @@
-use std::ops::{Add, AddAssign, Index, IndexMut};
+use std::ops::{Add, AddAssign, Index, IndexMut, Mul};
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub struct Index2d {
@@ -24,6 +24,17 @@ impl AddAssign for Index2d {
     }
 }
 
+impl Mul<i32> for Index2d {
+    type Output = Self;
+
+    fn mul(self, rhs: i32) -> Self::Output {
+        Self {
+            x: self.x * rhs,
+            y: self.y * rhs,
+        }
+    }
+}
+
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub enum Direction {
     Up,
@@ -39,6 +50,15 @@ impl Direction {
             Direction::Left => Index2d { x: -1, y: 0 },
             Direction::Down => Index2d { x: 0, y: 1 },
             Direction::Right => Index2d { x: 1, y: 0 },
+        }
+    }
+
+    pub fn invert(self) -> Direction {
+        match self {
+            Direction::Up => Direction::Down,
+            Direction::Left => Direction::Right,
+            Direction::Down => Direction::Up,
+            Direction::Right => Direction::Left,
         }
     }
 }
