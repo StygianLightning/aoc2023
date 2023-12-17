@@ -24,6 +24,25 @@ impl AddAssign for Index2d {
     }
 }
 
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, PartialOrd, Ord)]
+pub enum Direction {
+    Up,
+    Left,
+    Down,
+    Right,
+}
+
+impl Direction {
+    pub fn to_index(self) -> Index2d {
+        match self {
+            Direction::Up => Index2d { x: 0, y: -1 },
+            Direction::Left => Index2d { x: -1, y: 0 },
+            Direction::Down => Index2d { x: 0, y: 1 },
+            Direction::Right => Index2d { x: 1, y: 0 },
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Grid2d<T> {
     len_x: usize,

@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use aoc2023::util::{Grid2d, Index2d};
+use aoc2023::util::{Direction, Grid2d, Index2d};
 
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq)]
 enum Tile {
@@ -10,25 +10,6 @@ enum Tile {
     VerticalSplit,
     MirrorRightUp,
     MirrorRightDown,
-}
-
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-enum Direction {
-    Up,
-    Left,
-    Down,
-    Right,
-}
-
-impl Direction {
-    fn to_index(self) -> Index2d {
-        match self {
-            Direction::Up => Index2d { x: 0, y: -1 },
-            Direction::Left => Index2d { x: -1, y: 0 },
-            Direction::Down => Index2d { x: 0, y: 1 },
-            Direction::Right => Index2d { x: 1, y: 0 },
-        }
-    }
 }
 
 fn main() {
